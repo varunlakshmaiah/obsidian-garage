@@ -1,0 +1,1168 @@
+/* ═══════════════════════════════════════════════════════════════
+   Garage: a logbook for your vehicles
+   Every colour comes from the Obsidian theme. Scoped to .vm-root / .vm-modal.
+   ═══════════════════════════════════════════════════════════════ */
+
+.vm-root,
+.vm-modal {
+  --vm-rule: var(--background-modifier-border);
+  --vm-stock: var(--background-secondary);
+  /* Theme hues pulled 45% toward body text: readable as text in light and dark themes */
+  --vm-red: color-mix(in srgb, var(--color-red, #e93147) 55%, var(--text-normal));
+  --vm-orange: color-mix(in srgb, var(--color-orange, #ec7500) 55%, var(--text-normal));
+  --vm-green: color-mix(in srgb, var(--color-green, #08b94e) 55%, var(--text-normal));
+  font-variant-numeric: tabular-nums;
+}
+
+.vm-root {
+  container: vm / inline-size;
+  color: var(--text-normal);
+}
+
+.workspace-leaf-content .vm-root,
+.view-content.vm-root {
+  background: var(--background-primary);
+}
+
+.vm-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 4px 40px;
+}
+
+/* ── Atoms ── */
+.vm-root button,
+.vm-modal button {
+  font: inherit;
+}
+
+.vm-root button:focus-visible,
+.vm-modal button:focus-visible,
+.vm-modal input:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+
+.vm-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.vm-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.vm-muted {
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.vm-name {
+  min-width: 0;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vm-ellipsis {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vm-fig {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vm-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.vm-icon-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.vm-link {
+  height: auto;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.vm-root .vm-link:hover {
+  background: none;
+}
+
+/* ── Top bar ── */
+.vm-top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--vm-rule);
+  background: var(--background-primary);
+}
+
+.vm-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.15em;
+  font-weight: 700;
+}
+
+.vm-mark {
+  color: var(--text-accent);
+}
+
+.vm-mark svg {
+  width: 22px;
+  height: 22px;
+}
+
+.vm-tabs {
+  display: flex;
+  gap: 4px;
+  align-self: flex-end;
+  margin-bottom: -11px;
+}
+
+/* Tab caps: the selected tab joins the page */
+.vm-tab {
+  height: auto;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.vm-tab:hover {
+  color: var(--text-normal);
+}
+
+.vm-tab[aria-selected="true"] {
+  position: relative;
+  border-color: var(--vm-rule);
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.vm-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--background-primary);
+}
+
+.vm-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* ── Vehicle pills ── */
+.vm-pills {
+  display: flex;
+  gap: 6px;
+  padding: 14px 0 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.vm-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.vm-pills-inline {
+  padding: 0;
+}
+
+.vm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  height: auto;
+  padding: 4px 11px;
+  border: 1px solid var(--vm-rule);
+  border-radius: 99px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.vm-pill:hover {
+  border-color: var(--text-faint);
+  color: var(--text-normal);
+}
+
+.vm-pill[aria-pressed="true"] {
+  border-color: var(--interactive-accent);
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.vm-pill-count {
+  opacity: 0.75;
+}
+
+.vm-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--vm-orange);
+}
+
+.vm-dot.is-overdue {
+  background: var(--vm-red);
+}
+
+/* ── Summary: lead figure and strip of fields ── */
+.vm-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 40px;
+  padding: 22px 0 18px;
+  border-bottom: 1px solid var(--vm-rule);
+}
+
+.vm-lead-fig {
+  margin: 4px 0 2px;
+  font-size: 2.8em;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.vm-lead-line {
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+.vm-lead-line b {
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+.vm-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, auto);
+  margin-left: auto;
+  border: 1px solid var(--vm-rule);
+  border-radius: 10px;
+  background: var(--vm-stock);
+}
+
+.vm-strip-wide {
+  grid-auto-columns: minmax(0, 1fr);
+  margin: 16px 0 0;
+}
+
+.vm-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 8px 16px 10px;
+}
+
+.vm-field + .vm-field {
+  border-left: 1px solid var(--vm-rule);
+}
+
+.vm-field-tab {
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.vm-field-val {
+  font-size: 1.15em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vm-field-btn {
+  height: auto;
+  align-items: flex-start;
+  border-radius: 10px 0 0 10px;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.vm-field-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.vm-field-btn .vm-field-val {
+  text-decoration: underline dotted var(--text-faint);
+  text-underline-offset: 4px;
+}
+
+.vm-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vm-fields .vm-field {
+  padding: 8px 12px;
+}
+
+.vm-fields .vm-field-val {
+  font-size: 1em;
+}
+
+/* ── Sections ── */
+.vm-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 26px 0 10px;
+}
+
+.vm-section-title {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 700;
+}
+
+.vm-head-tools {
+  display: flex;
+  margin-left: auto;
+}
+
+.vm-no-match {
+  padding: 12px 0;
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+/* ── Single vehicle header ── */
+.vm-vehicle-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+}
+
+.vm-vehicle-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--vm-rule);
+  border-radius: 10px;
+  background: var(--vm-stock);
+  color: var(--text-accent);
+}
+
+.vm-vehicle-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.vm-vehicle-id {
+  flex: 1;
+  min-width: 0;
+}
+
+.vm-vehicle-name {
+  margin: 0;
+  font-size: 1.5em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* ── Cards ── */
+.vm-cards {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  padding: 2px 2px 6px;
+  scrollbar-width: thin;
+}
+
+/* Wide panes: cards wrap into a grid, no scrolling */
+@container vm (min-width: 960px) {
+  .vm-cards {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+}
+
+.vm-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--vm-rule);
+  border-radius: 10px;
+  background: var(--vm-stock);
+  scroll-snap-align: start;
+}
+
+.vm-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px dashed var(--vm-rule);
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.vm-card-head > span {
+  min-width: 0;
+}
+
+.vm-card.is-overdue .vm-card-when {
+  color: var(--vm-red);
+}
+
+.vm-card.is-soon .vm-card-when {
+  color: var(--vm-orange);
+}
+
+.vm-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  padding: 12px;
+}
+
+.vm-card-body p {
+  margin: 0 0 8px;
+}
+
+.vm-card-body .vm-bar {
+  margin-top: 6px;
+}
+
+.vm-card-actions {
+  display: flex;
+  border-top: 1px solid var(--vm-rule);
+}
+
+.vm-card-actions .vm-btn {
+  flex: 1;
+  justify-content: center;
+  height: 36px;
+  border-radius: 0 0 10px 10px;
+  background: transparent;
+  box-shadow: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vm-card-actions .vm-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.vm-empty {
+  max-width: 520px;
+  margin: 40px auto 0;
+}
+
+/* ── Progress bar ── */
+.vm-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--background-primary);
+}
+
+.vm-bar-fill {
+  width: var(--vm-pct, 0%);
+  height: 100%;
+  border-radius: 99px;
+  background: var(--vm-green);
+}
+
+.vm-bar.is-soon .vm-bar-fill {
+  background: var(--vm-orange);
+}
+
+.vm-bar.is-overdue .vm-bar-fill {
+  background: var(--vm-red);
+}
+
+/* ── Vehicle tiles ── */
+.vm-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+
+.vm-tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  height: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--vm-rule);
+  border-radius: 8px;
+  background: var(--background-primary);
+  box-shadow: none;
+  text-align: left;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.vm-tile:hover {
+  border-color: var(--background-modifier-border-hover);
+  background: var(--background-modifier-hover);
+}
+
+.vm-tile-icon {
+  color: var(--text-muted);
+}
+
+.vm-tile-mid,
+.vm-entry-mid {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vm-tile-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+/* ── Stamps: the only status label ── */
+.vm-stamp {
+  padding: 1px 6px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.vm-stamp.is-overdue {
+  color: var(--vm-red);
+}
+
+.vm-stamp.is-soon {
+  color: var(--vm-orange);
+}
+
+/* ── Lists: schedule and documents ── */
+.vm-list {
+  border: 1px solid var(--vm-rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.vm-list:empty {
+  display: none;
+}
+
+.vm-list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px 10px 14px;
+}
+
+.vm-list-row + .vm-list-row {
+  border-top: 1px solid var(--vm-rule);
+}
+
+.vm-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.vm-list-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.vm-list-when {
+  flex-shrink: 0;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.vm-list-row.is-soon .vm-list-when {
+  color: var(--vm-orange);
+  font-weight: 600;
+}
+
+.vm-list-row.is-overdue .vm-list-when {
+  color: var(--vm-red);
+  font-weight: 600;
+}
+
+.vm-notes-text {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--text-muted);
+}
+
+/* ── Log entries ── */
+.vm-entries {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--vm-rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.vm-entry {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  height: auto;
+  padding: 10px 14px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+/* Long-press opens the menu, so it must not select text or show the iOS callout */
+.vm-entry,
+.vm-tile {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.vm-entry + .vm-entry {
+  border-top: 1px solid var(--vm-rule);
+}
+
+.vm-entry:hover {
+  background: var(--background-modifier-hover);
+}
+
+.vm-entry-icon {
+  color: var(--text-muted);
+}
+
+.vm-entry-notes {
+  font-style: italic;
+}
+
+/* ── Spend ── */
+.vm-seg {
+  display: inline-flex;
+  margin-left: auto;
+  padding: 2px;
+  border: 1px solid var(--vm-rule);
+  border-radius: 8px;
+}
+
+.vm-seg button {
+  height: auto;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.vm-seg button[aria-pressed="true"] {
+  background: var(--vm-stock);
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+.vm-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.vm-panels-tight {
+  margin-top: 0;
+}
+
+.vm-chart-wrap {
+  padding: 12px 12px 4px;
+}
+
+.vm-chart {
+  display: block;
+  width: 100%;
+  height: 5em;
+  overflow: visible;
+  color: var(--interactive-accent);
+}
+
+.vm-chart polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.vm-chart-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+  padding: 0 12px 10px;
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+}
+
+.vm-inline-icon {
+  display: inline-flex;
+  margin-left: 6px;
+  vertical-align: -0.1em;
+  color: var(--text-muted);
+}
+
+.vm-inline-icon svg {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+.vm-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 12px;
+}
+
+.vm-bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  font-size: 0.9em;
+}
+
+.vm-bar-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vm-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 2px;
+  background: var(--vm-bar);
+}
+
+.vm-bar-track {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--background-primary);
+  overflow: hidden;
+}
+
+.vm-bar-track .vm-bar-fill {
+  display: block;
+  width: var(--vm-pct);
+  background: var(--vm-bar);
+}
+
+.vm-cols {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 6px;
+  height: 140px;
+  padding: 12px;
+  border: 1px solid var(--vm-rule);
+  border-radius: 10px;
+  background: var(--vm-stock);
+}
+
+.vm-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.vm-col-bar {
+  height: var(--vm-h, 0%);
+  width: 100%;
+  max-width: 28px;
+  border-radius: 4px 4px 0 0;
+  background: var(--interactive-accent);
+}
+
+.vm-col-label {
+  font-size: 0.68em;
+  color: var(--text-muted);
+}
+
+/* ── Settings tab ── */
+.vm-settings {
+  display: grid;
+  gap: 16px;
+  max-width: 720px;
+  margin: 20px auto 0;
+}
+
+.vm-settings-body {
+  padding: 0 14px;
+}
+
+.vm-settings-body .setting-item:first-child {
+  border-top: 0;
+}
+
+/* ── Note embed ── */
+.vm-embed {
+  margin: 8px 0;
+}
+
+.vm-embed .vm-card-body,
+.vm-embed-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.vm-embed-list > p {
+  margin: 0;
+  padding: 12px;
+}
+
+.vm-embed-list .vm-fields {
+  border-bottom: 1px solid var(--vm-rule);
+}
+
+.vm-embed-row {
+  display: grid;
+  grid-template-columns: minmax(7em, auto) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  height: auto;
+  padding: 8px 12px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.vm-embed-row + .vm-embed-row {
+  border-top: 1px solid var(--vm-rule);
+}
+
+.vm-embed-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.vm-embed-when {
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vm-orange);
+}
+
+.vm-embed-row.is-overdue .vm-embed-when {
+  color: var(--vm-red);
+}
+
+.vm-embed-name {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.vm-embed-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px dashed var(--vm-rule);
+  font-size: 0.9em;
+}
+
+/* ── Modals ── */
+.vm-modal-section {
+  margin-top: 6px;
+  border-bottom: 1px dashed var(--vm-rule);
+}
+
+.vm-modal-section .setting-item-name {
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.vm-hint {
+  margin: 8px 0;
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.vm-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+/* One schedule row: name gets the room, numbers stay compact, wraps on phones */
+.vm-row {
+  display: grid;
+  grid-template-columns: minmax(8em, 2fr) repeat(3, minmax(4.5em, 1fr)) minmax(8.5em, 1.3fr) auto;
+  align-items: end;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--vm-rule);
+  border-radius: 8px;
+}
+
+.vm-row-doc {
+  grid-template-columns: minmax(0, 2fr) minmax(8.5em, 1fr) auto;
+}
+
+.vm-row-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vm-row-field input {
+  width: 100%;
+  min-width: 0;
+}
+
+.vm-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.vm-chip {
+  height: auto;
+  padding: 4px 11px;
+  border: 1px solid var(--vm-rule);
+  border-radius: 99px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.vm-chip:hover {
+  color: var(--text-normal);
+  border-color: var(--text-faint);
+}
+
+.vm-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px 12px;
+  padding: 8px 0;
+}
+
+.vm-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.vm-notes .setting-item-control,
+.vm-notes textarea {
+  width: 100%;
+}
+
+.vm-notes .setting-item-info:empty {
+  display: none;
+}
+
+.vm-modal-actions {
+  border-top: 0;
+}
+
+.vm-modal-actions .setting-item-info {
+  display: none;
+}
+
+.vm-modal-actions .setting-item-control {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* ── Notices ── */
+.vm-notice-list {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+
+.vm-notice-btn {
+  margin-top: 6px;
+}
+
+/* ═══ Narrow panes: split view, sidebar, phone ═══ */
+@container vm (max-width: 640px) {
+  .vm-title { flex: 1; min-width: 0; }
+  .vm-tabs { order: 3; width: 100%; gap: 0; }
+  .vm-tab { flex: 1; padding: 6px 4px; letter-spacing: 0.06em; }
+  .vm-tools { margin-left: 0; }
+  .vm-summary { gap: 14px; }
+  .vm-lead-fig { font-size: 2.3em; }
+  .vm-strip { width: 100%; margin-left: 0; grid-auto-columns: minmax(0, 1fr); }
+  .vm-strip-wide { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vm-strip-wide .vm-field:nth-child(3) { border-left: 0; }
+  .vm-strip-wide .vm-field:nth-child(n + 3) { border-top: 1px solid var(--vm-rule); }
+  .vm-field { padding: 8px 10px 9px; }
+  .vm-field-val { font-size: 1em; }
+  .vm-field-btn { border-radius: 10px 0 0 0; }
+  .vm-cards { grid-auto-columns: 82%; }
+  .vm-tiles,
+  .vm-panels { grid-template-columns: minmax(0, 1fr); }
+  .vm-seg { margin-left: 0; width: 100%; }
+  .vm-seg button { flex: 1; }
+  .vm-actions .vm-btn { flex: 1; justify-content: center; }
+  /* One-handed: 44px touch targets */
+  .vm-tab,
+  .vm-pill,
+  .vm-seg button,
+  .vm-actions .vm-btn,
+  .vm-card-actions .vm-btn,
+  .vm-icon-btn,
+  .vm-chip { min-height: 44px; }
+  .vm-icon-btn { min-width: 44px; }
+  .vm-pill,
+  .vm-chip { padding: 0 14px; }
+}
+
+@container vm (max-width: 420px) {
+  .vm-btn-label { display: none; }
+  .vm-wrap { padding: 0 0 32px; }
+  .vm-embed-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+
+/* The modal is not inside the container, so it follows the window */
+@media (max-width: 640px) {
+  .vm-row,
+  .vm-row-doc { position: relative; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vm-row .is-name { grid-column: 1 / -1; padding-right: 48px; }
+  .vm-row .vm-icon-btn { position: absolute; top: 8px; right: 8px; min-width: 44px; min-height: 44px; }
+  .vm-chip,
+  .vm-check { min-height: 44px; }
+  /* Rows with two controls (cost + workshop, make + model) wrap under their label */
+  .vm-modal .setting-item:not(.setting-item-heading):not(.vm-modal-actions) { flex-wrap: wrap; }
+  .vm-modal .setting-item-control { flex: 1 1 100%; flex-wrap: wrap; min-width: 0; }
+  .vm-modal .setting-item-control > input,
+  .vm-modal .setting-item-control > select { flex: 1 1 8em; min-width: 0; }
+}
+
+@container vm (max-width: 420px) {
+  .vm-settings .setting-item { flex-wrap: wrap; }
+  .vm-settings .setting-item-control { flex: 1 1 100%; flex-wrap: wrap; min-width: 0; }
+  .vm-settings .setting-item-control > input,
+  .vm-settings .setting-item-control > select { flex: 1 1 8em; min-width: 0; }
+}

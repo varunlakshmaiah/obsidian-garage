@@ -1,0 +1,18 @@
+# Changelog
+
+## 1.0.0 — 2026-11-02
+
+First public release.
+
+- Garage dashboard: what needs attention across all vehicles, vehicle tiles, and a page per vehicle with odometer, mileage, cost per km and spend.
+- Service schedules by distance or months, whichever comes first, with presets for cars, motorcycles, scooters and EVs. Logging a service resets the items you tick.
+- Documents and renewals (insurance, PUC, registration, road tax…) with a Renew action.
+- Fuel and charging log with full-tank mileage, partial and missed fills, and price per litre worked out from any two of litres, price and cost.
+- Other expenses: insurance, tax, EMI, parking, tolls, cleaning, fines, accessories.
+- Receipts on any entry, from the vault or the phone camera.
+- Spend by kind, by vehicle and by month; mileage and fuel price trends per vehicle.
+- Log of every entry with edit, delete and Undo.
+- A once-a-day reminder when the vault opens.
+- `vehicle-garage` and `vehicle-card` blocks for notes.
+- JSON backup and import; CSV export, and CSV import from this plugin or other apps' fuel logs.
+- Desktop and mobile, any pane width, light and dark themes. No network requests.

@@ -1,0 +1,30 @@
+# Publishes a GitHub release when a version tag (e.g. 1.0.0) is pushed.
+# Obsidian downloads main.js, manifest.json, and styles.css from the release.
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check manifest version matches tag
+        run: |
+          test "$(jq -r .version manifest.json)" = "${GITHUB_REF_NAME}"
+      - name: Create release (skipped if one already exists for this tag)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists."
+            exit 0
+          fi
+          gh release create "${GITHUB_REF_NAME}" main.js manifest.json styles.css \
+            --title "${GITHUB_REF_NAME}" --notes "See CHANGELOG.md for details."

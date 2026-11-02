@@ -1,0 +1,24 @@
+# Runs the logic tests on every push and pull request.
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax check
+        run: node --check main.js
+      - name: Logic tests
+        run: node --test test.js
+      - name: Manifest and versions agree
+        run: |
+          v=$(jq -r .version manifest.json)
+          test "$(jq -r --arg v "$v" '.[$v]' versions.json)" = "$(jq -r .minAppVersion manifest.json)"

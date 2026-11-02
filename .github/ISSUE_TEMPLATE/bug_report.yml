@@ -1,0 +1,46 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the garage
+        2. …
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Garage version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: obsidian-version
+    attributes:
+      label: Obsidian version
+      placeholder: "1.7.7"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options: [macOS, Windows, Linux, iOS, iPadOS, Android]
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors
+      description: Open the developer console (Cmd+Option+I on macOS, Ctrl+Shift+I on Windows and Linux) and paste any red errors. Please remove personal details.
+      render: text

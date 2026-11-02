@@ -1,0 +1,11 @@
+# Personal plugin data written by Obsidian
+data.json
+
+# This folder doubles as a test vault: its config and notes stay local
+.obsidian/
+Vehicles/
+Garage.md
+
+node_modules/
+.DS_Store
+*.log

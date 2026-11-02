@@ -1,10 +1,11 @@
-// Logic tests for main.js. Run: node --test
+// Logic tests for the built main.js. Run: npm test
 // Loads main.js with a minimal Obsidian stand-in and reaches its internal helpers.
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 class Base { constructor(app) { this.app = app; } }
 const notices = [];
@@ -16,12 +17,14 @@ const obsidian = {
 };
 global.createFragment = () => ({});
 
+// Run the bundle like Obsidian does, and hand its internal helpers back to the tests
 const src = fs.readFileSync(path.join(__dirname, 'main.js'), 'utf8');
 const mod = { exports: {} };
-new Function('module', 'exports', 'require', src + `
+vm.runInThisContext(`(function (module, exports, require) {${src}
 module.exports.__t = { addMonthsISO, daysBetween, intervalStatus, documentStatus, efficiency, normalizeVehicle,
   normalizeData, spendBy, monthlySpend, needsAttention, dueLabel, presetsFor, odometerOf, statsOf, efficiencySeries,
-  priceSeries, fillTrio, toCSV, csvEntries, parseCSV };`)(mod, mod.exports, () => obsidian);
+  priceSeries, fillTrio, toCSV, csvEntries, parseCSV, VehicleSettingTab };
+})`, { filename: 'main.js' })(mod, mod.exports, () => obsidian);
 const T = mod.exports.__t;
 const DATA = T.normalizeData({});
 
@@ -155,7 +158,7 @@ test('presets fit the vehicle and convert to miles', () => {
 // ── Plugin mutations ──
 async function plugin(data) {
   let saved = null;
-  const P = mod.exports;
+  const P = mod.exports.default;
   const p = new P();
   p.app = { workspace: { getLeavesOfType: () => [], onLayoutReady() {} } };
   p.loadData = async () => data;
@@ -288,4 +291,21 @@ test('importCSV adds rows to named vehicles and skips duplicates', async () => {
   assert.equal(vs[0].fills.length, 1);
   assert.equal(vs[1].name, 'New bike');
   assert.equal(vs[1].services[0].task, 'Chain');
+});
+
+test('settings search definitions read and write the plugin data', async () => {
+  const { p, saved } = await plugin({ vehicles: [] });
+  const tab = new T.VehicleSettingTab(p.app, p);
+  const defs = tab.getSettingDefinitions();
+  const flat = defs.flatMap((d) => (d.items ? d.items : [d]));
+  const keys = flat.filter((d) => d.control).map((d) => d.control.key);
+  keys.forEach((k) => assert.ok(k in p.data, `${k} is a data field`));
+  assert.ok(flat.filter((d) => d.action).length >= 3, 'export and import actions');
+  assert.equal(tab.getControlValue('currency'), 'INR');
+  await tab.setControlValue('soonDays', 0);
+  assert.equal(saved().soonDays, 30, 'zero falls back to the default');
+  await tab.setControlValue('exportFolder', '  ');
+  assert.equal(saved().exportFolder, 'Garage');
+  await tab.setControlValue('currency', 'USD');
+  assert.equal(saved().currency, 'USD');
 });

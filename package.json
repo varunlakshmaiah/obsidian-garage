@@ -1,0 +1,26 @@
+{
+  "name": "obsidian-garage",
+  "version": "1.0.1",
+  "description": "Track service schedules, fuel and charging, expenses, receipts and renewals for your cars, motorcycles and EVs.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs",
+    "lint": "eslint .",
+    "test": "npm run build && node --test test.cjs",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "author": "Varun Lakshmaiah",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "esbuild": "0.28.2",
+    "eslint": "10.14.0",
+    "eslint-plugin-obsidianmd": "0.4.2",
+    "globals": "17.14.0",
+    "obsidian": "1.14.4",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1"
+  }
+}

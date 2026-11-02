@@ -115,7 +115,7 @@ Garage adapts to the width of its pane, not the window: a phone, a narrow sideba
 
 | Command | What it does |
 |---|---|
-| Open garage | Opens the dashboard (also the car icon in the ribbon) |
+| Open dashboard | Opens the garage (also the car icon in the ribbon) |
 | Add vehicle | New vehicle with a schedule that fits its type |
 | Log service | Pick a vehicle, then log work done |
 | Log fuel or charge | Pick a vehicle, then log a fill or charge |
@@ -151,22 +151,25 @@ Dates such as `05/02/2024` are read day first. Numbers with a decimal comma (`1.
 
 ## Development
 
-There is no build step: `main.js` and `styles.css` are the shipped files.
+The plugin is plain JavaScript in `src/main.js`, with no runtime dependencies. [esbuild](https://esbuild.github.io) bundles it into `main.js` (not minified, so you can read exactly what runs in your vault), and [Obsidian's official lint rules](https://github.com/obsidianmd/eslint-plugin) check it on every push.
 
 ```bash
 git clone https://github.com/varunlakshmaiah/obsidian-garage.git
 cd obsidian-garage
-node --test                    # logic tests
+npm install
+npm run dev                    # rebuild main.js on every change
+npm run lint                   # Obsidian's review rules
+npm test                       # build, then the logic tests
 python3 -m http.server 8765    # then open http://127.0.0.1:8765/preview/index.html
 ```
 
-The preview runs the real plugin in a browser against a stand-in for the Obsidian API, with fictional demo data and switches for theme, accent and pane width (full, 900, 600 and 390px).
+The preview runs the built plugin in a browser against a stand-in for the Obsidian API, with fictional demo data and switches for theme, accent and pane width (full, 900, 600 and 390px).
 
-To try changes in Obsidian, copy or symlink the repository into `<vault>/.obsidian/plugins/garage/` and turn the plugin off and on. Design rules are in [DESIGN.md](DESIGN.md).
+To try changes in Obsidian, copy `main.js`, `manifest.json` and `styles.css` (or symlink the repository) into `<vault>/.obsidian/plugins/garage/` and turn the plugin off and on. Design rules are in [DESIGN.md](DESIGN.md).
 
 ### Releasing
 
-Bump `version` in `manifest.json`, add it to `versions.json` and `CHANGELOG.md`, commit, then push a tag with the same number (`git tag 1.0.1 && git push origin 1.0.1`). The release workflow attaches `main.js`, `manifest.json` and `styles.css` to a GitHub release.
+Add a section for the new version to `CHANGELOG.md`, then run `npm version patch` (or `minor`, `major`). That updates `package.json`, `manifest.json` and `versions.json`, commits, and tags. Push with `git push --follow-tags`. The release workflow lints, tests, builds and attaches `main.js`, `manifest.json` and `styles.css` to a GitHub release, with this version's changelog as its notes.
 
 ## Support
 

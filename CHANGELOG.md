@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 — 2026-11-02
+
+- Settings appear in Obsidian's settings search (Obsidian 1.13 and later).
+- The command to open the dashboard is now **Open dashboard**.
+- Clearer labels in the vehicle form and settings.
+- Source moved to `src/` and checked against Obsidian's official review rules on every change; `main.js` is now built and attached to each release.
+
 ## 1.0.0 — 2026-11-02
 
 First public release.

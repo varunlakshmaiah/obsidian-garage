@@ -123,14 +123,15 @@ select.dropdown { padding-right: 24px; }
   // ?clean=1 hides the preview toolbar, for screenshots
   if (q.get('clean') === '1') document.documentElement.classList.add('pv-clean');
 
-  // Load the real plugin source
+  // Load the built plugin (run `npm run build` or `npm run dev` first)
   const src = await (await fetch('../main.js?' + Date.now())).text();
   const module = { exports: {} };
   new Function('module', 'exports', 'require', src)(module, module.exports, () => window.__obsidian);
 
   const leaf = { containerEl: $('pv-leaf') };
   window.__obsidianLeaves.push(leaf);
-  const plugin = new module.exports();
+  const Plugin = module.exports.default || module.exports;
+  const plugin = new Plugin();
   await plugin.onload();
   leaf.view = plugin._viewFactory(leaf);
   await leaf.view.onOpen();

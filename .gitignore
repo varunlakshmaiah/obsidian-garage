@@ -6,6 +6,9 @@ data.json
 Vehicles/
 Garage.md
 
+# Build output: attached to each GitHub release, not committed
+main.js
+
 node_modules/
 .DS_Store
 *.log

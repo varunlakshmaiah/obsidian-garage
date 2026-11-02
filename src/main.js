@@ -1,9 +1,7 @@
-'use strict';
-
-const {
+import {
   Plugin, ItemView, Modal, Setting, Notice, PluginSettingTab, Menu, FuzzySuggestModal,
   MarkdownRenderChild, TFile, setIcon, addIcon, normalizePath,
-} = require('obsidian');
+} from 'obsidian';
 
 // ============================================================
 // Constants
@@ -724,8 +722,8 @@ class VehicleModal extends Modal {
         t.inputEl.inputMode = 'numeric';
         t.setPlaceholder(String(new Date().getFullYear())).setValue(v.year).onChange((x) => (v.year = x));
       })
-      .addText((t) => t.setPlaceholder('KA 01 AB 1234').setValue(v.plate).onChange((x) => (v.plate = x)));
-    new Setting(contentEl).setName('VIN / chassis number').addText((t) => t.setValue(v.vin).onChange((x) => (v.vin = x)));
+      .addText((t) => t.setPlaceholder('Number plate').setValue(v.plate).onChange((x) => (v.plate = x)));
+    new Setting(contentEl).setName('Chassis number').addText((t) => t.setValue(v.vin).onChange((x) => (v.vin = x)));
     new Setting(contentEl)
       .setName(`Odometer (${unit})`)
       .addText((t) => numberInput(t, v.odometer, '0').onChange((x) => (v.odometer = num(x))));
@@ -769,7 +767,7 @@ class VehicleModal extends Modal {
       });
     });
     const ivAdd = contentEl.createDiv({ cls: 'vm-chip-row' });
-    ivAdd.createEl('button', { cls: 'vm-chip', text: '+ Add item' }).addEventListener('click', () => {
+    ivAdd.createEl('button', { cls: 'vm-chip', text: 'Add item' }).addEventListener('click', () => {
       this.touchedIntervals = true;
       v.intervals.push({ id: uid(), name: '', distance: 0, months: 0, lastDistance: 0, lastDate: '' });
       this.onOpen();
@@ -1183,7 +1181,7 @@ class GarageView extends ItemView {
     const c = parent.createDiv({ cls: 'vm-card vm-empty' });
     c.createDiv({ cls: 'vm-card-head' }).createSpan({ text: 'Your garage is empty' });
     const body = c.createDiv({ cls: 'vm-card-body' });
-    body.createEl('p', { text: 'Add a car, motorcycle, scooter or EV. A service schedule that fits it is filled in for you, and you will see here what needs doing next.' });
+    body.createEl('p', { text: 'Add a car, motorcycle, scooter or electric vehicle. A service schedule that fits it is filled in for you, and you will see here what needs doing next.' });
     const row = body.createDiv({ cls: 'vm-chip-row' });
     row.createEl('button', { cls: 'mod-cta', text: 'Add your first vehicle' }).addEventListener('click', () => this.plugin.openVehicleModal(null));
     row.createEl('button', { text: 'Import a backup' }).addEventListener('click', () => this.plugin.openImport());
@@ -1721,7 +1719,7 @@ function renderDataSettings(el, plugin) {
     .addButton((b) => b.setButtonText('Import…').onClick(() => plugin.openImport()));
   new Setting(el)
     .setName('Log as CSV')
-    .setDesc('Every service, fill and expense as a spreadsheet. Import reads this file back, or the fuel log exported by apps like Fuelio and Drivvo.')
+    .setDesc('Every service, fill and expense as a spreadsheet. Import reads this file back, or a fuel log exported by another app.')
     .addButton((b) => b.setButtonText('Export CSV').onClick(() => plugin.exportCSV()))
     .addButton((b) => b.setButtonText('Import CSV…').onClick(() => plugin.openImport()));
 }
@@ -1732,12 +1730,50 @@ class VehicleSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
+  /** Obsidian before 1.13 draws the tab with display(); 1.13+ uses getSettingDefinitions() and lists them in settings search */
   display() {
     const { containerEl } = this;
     containerEl.empty();
     renderPreferences(containerEl, this.plugin);
     new Setting(containerEl).setName('Data').setHeading();
     renderDataSettings(containerEl, this.plugin);
+  }
+
+  getSettingDefinitions() {
+    const { data } = this.plugin;
+    const positive = (v) => (num(v) > 0 ? '' : 'Enter a number above 0.');
+    return [
+      { name: 'Currency', control: { type: 'dropdown', key: 'currency', options: Object.fromEntries(Object.keys(CURRENCIES).map((c) => [c, `${c} ${CURRENCIES[c]}`])) } },
+      {
+        name: 'Distance unit', desc: 'Changing units relabels numbers, it does not convert them.', aliases: ['kilometres', 'miles'],
+        control: { type: 'dropdown', key: 'distanceUnit', options: { km: 'Kilometres', mi: 'Miles' } },
+      },
+      { name: 'Volume unit', aliases: ['litres', 'gallons'], control: { type: 'dropdown', key: 'volumeUnit', options: { L: 'Litres', gal: 'Gallons' } } },
+      {
+        name: 'Due soon distance', desc: `Flag an item this many ${data.distanceUnit} before it is due. Short intervals warn within a quarter of the interval instead.`,
+        control: { type: 'number', key: 'soonDistance', min: 1, validate: positive },
+      },
+      { name: 'Due soon days', desc: 'Flag an item this many days before it is due.', control: { type: 'number', key: 'soonDays', min: 1, validate: positive } },
+      { name: 'Reminders', desc: 'When the vault opens, list overdue and due-soon items. Shown once a day.', control: { type: 'toggle', key: 'reminders' } },
+      {
+        type: 'group', heading: 'Data', items: [
+          { name: 'Export folder', desc: 'Backups, CSV exports and receipts are saved to this vault folder.', control: { type: 'folder', key: 'exportFolder' } },
+          { name: 'Export backup', desc: 'Everything, to a JSON file in the export folder.', action: () => this.plugin.exportJSON() },
+          { name: 'Export log as CSV', desc: 'Every service, fill and expense as a spreadsheet.', action: () => this.plugin.exportCSV() },
+          { name: 'Import backup or CSV log', desc: 'From a .json backup, this plugin\'s CSV, or a fuel log exported by another app.', action: () => this.plugin.openImport() },
+        ],
+      },
+    ];
+  }
+
+  getControlValue(key) {
+    return this.plugin.data[key];
+  }
+
+  setControlValue(key, value) {
+    if (key === 'soonDistance' || key === 'soonDays') value = num(value) || DEFAULT_DATA[key];
+    if (key === 'exportFolder') value = str(value) || DEFAULT_DATA.exportFolder;
+    return this.plugin.update({ [key]: value }, key !== 'reminders' && key !== 'exportFolder');
   }
 }
 
@@ -1761,7 +1797,7 @@ class GaragePlugin extends Plugin {
       ctx.addChild(new GarageEmbed(el, this, str(name)));
     });
 
-    this.addCommand({ id: 'open-garage', name: 'Open garage', callback: () => this.activateView() });
+    this.addCommand({ id: 'open-dashboard', name: 'Open dashboard', callback: () => this.activateView() });
     this.addCommand({ id: 'add-vehicle', name: 'Add vehicle', callback: () => this.openVehicleModal(null) });
     this.addCommand({ id: 'log-service', name: 'Log service', callback: () => this.pickVehicle((v) => this.openEntryModal(v, 'services')) });
     this.addCommand({ id: 'log-fuel', name: 'Log fuel or charge', callback: () => this.pickVehicle((v) => this.openEntryModal(v, 'fills')) });
@@ -2106,4 +2142,4 @@ class GaragePlugin extends Plugin {
   }
 }
 
-module.exports = GaragePlugin;
+export default GaragePlugin;

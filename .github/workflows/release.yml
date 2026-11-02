@@ -15,6 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Build
+        run: |
+          npm ci
+          npm run lint
+          npm test
       - name: Check manifest version matches tag
         run: |
           test "$(jq -r .version manifest.json)" = "${GITHUB_REF_NAME}"
@@ -26,5 +35,7 @@ jobs:
             echo "Release ${GITHUB_REF_NAME} already exists."
             exit 0
           fi
+          # Release notes: this version's section of CHANGELOG.md
+          awk -v v="## ${GITHUB_REF_NAME} " 'index($0, v) == 1 { f = 1; next } /^## / { f = 0 } f' CHANGELOG.md > notes.md
           gh release create "${GITHUB_REF_NAME}" main.js manifest.json styles.css \
-            --title "${GITHUB_REF_NAME}" --notes "See CHANGELOG.md for details."
+            --title "Garage ${GITHUB_REF_NAME}" --notes-file notes.md

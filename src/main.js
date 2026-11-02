@@ -1,6 +1,6 @@
 import {
   Plugin, ItemView, Modal, Setting, Notice, PluginSettingTab, Menu, FuzzySuggestModal,
-  MarkdownRenderChild, TFile, setIcon, addIcon, normalizePath,
+  MarkdownRenderChild, setIcon, addIcon, normalizePath,
 } from 'obsidian';
 
 // ============================================================
@@ -2019,7 +2019,7 @@ class GaragePlugin extends Plugin {
   }
 
   async ensureFolder(folder) {
-    if (!this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
+    if (!this.app.vault.getFolderByPath(folder)) await this.app.vault.createFolder(folder);
   }
 
   /** Write today's export file, replacing one from earlier today */
@@ -2028,8 +2028,8 @@ class GaragePlugin extends Plugin {
     const path = normalizePath(`${this.exportFolder()}/vehicles-${todayISO()}.${ext}`);
     try {
       await this.ensureFolder(this.exportFolder());
-      const existing = vault.getAbstractFileByPath(path);
-      if (existing instanceof TFile) await vault.modify(existing, content);
+      const existing = vault.getFileByPath(path);
+      if (existing) await vault.process(existing, () => content);
       else await vault.create(path, content);
       new Notice(`Exported ${what} to ${path}`);
     } catch (e) {
@@ -2056,7 +2056,7 @@ class GaragePlugin extends Plugin {
       await this.ensureFolder(this.exportFolder());
       await this.ensureFolder(folder);
       let path = normalizePath(`${folder}/${name}`);
-      if (vault.getAbstractFileByPath(path)) path = normalizePath(`${folder}/${uid()} ${name}`);
+      if (vault.getFileByPath(path)) path = normalizePath(`${folder}/${uid()} ${name}`);
       await vault.createBinary(path, await file.arrayBuffer());
       return path;
     } catch (e) {
@@ -2066,8 +2066,9 @@ class GaragePlugin extends Plugin {
   }
 
   openReceipt(path) {
-    if (!this.app.vault.getAbstractFileByPath(path)) return new Notice(`Receipt not found: ${path}`);
-    this.app.workspace.openLinkText(path, '', true);
+    const file = this.app.vault.getFileByPath(normalizePath(path));
+    if (!file) return new Notice(`Receipt not found: ${path}`);
+    this.app.workspace.openLinkText(file.path, '', true);
   }
 
   /** Add CSV log rows to the vehicles they name; rows without a vehicle go to one the user picks */

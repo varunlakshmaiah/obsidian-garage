@@ -216,6 +216,9 @@
   const folders = new Set();
   const vault = {
     getFiles: () => [...files.keys()].map((p) => files.get(p).file),
+    getFileByPath: (p) => (files.has(p) ? files.get(p).file : null),
+    getFolderByPath: (p) => (folders.has(p) ? { path: p, children: [] } : null),
+    process: async (f, fn) => { files.get(f.path).data = fn(files.get(f.path).data); return files.get(f.path).data; },
     getAbstractFileByPath: (p) => (files.has(p) ? files.get(p).file : folders.has(p) ? { path: p, children: [] } : null),
     read: async (f) => files.get(f.path).data,
     cachedRead: async (f) => files.get(f.path).data,

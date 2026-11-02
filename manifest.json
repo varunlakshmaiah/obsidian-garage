@@ -1,7 +1,7 @@
 {
   "id": "garage",
   "name": "Garage",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "minAppVersion": "1.5.7",
   "description": "Track service schedules, fuel and charging, expenses, receipts and renewals for your cars, motorcycles and EVs. See what needs doing next and get reminded before it is overdue.",
   "author": "Varun Lakshmaiah",

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2 — 2026-11-02
+
+- Re-exporting a backup or CSV on the same day now updates the file with `Vault.process`, as Obsidian's guidelines recommend.
+- Files and folders are looked up by path directly instead of through a general lookup.
+- Receipt paths from imported files are normalised before opening.
+
 ## 1.0.1 — 2026-11-02
 
 - Settings appear in Obsidian's settings search (Obsidian 1.13 and later).

@@ -209,9 +209,9 @@
   gap: 6px;
   padding: 14px 0 2px;
   overflow-x: auto;
-  scrollbar-width: none;
 }
 
+/* Scrollbars are styled with the WebKit pseudo-elements: Obsidian 1.4's Chromium has no scrollbar-width */
 .vm-pills::-webkit-scrollbar {
   display: none;
 }
@@ -348,8 +348,9 @@
 }
 
 .vm-field-btn .vm-field-val {
-  text-decoration: underline dotted var(--text-faint);
-  text-underline-offset: 4px;
+  /* A dotted rule rather than a styled underline, which older Obsidian versions only partly support */
+  padding-bottom: 1px;
+  border-bottom: 1px dotted var(--text-faint);
 }
 
 .vm-fields {
@@ -447,7 +448,10 @@
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   padding: 2px 2px 6px;
-  scrollbar-width: thin;
+}
+
+.vm-cards::-webkit-scrollbar {
+  height: 6px;
 }
 
 /* Wide panes: cards wrap into a grid, no scrolling */

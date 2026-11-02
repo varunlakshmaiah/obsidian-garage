@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 — 2026-11-02
+
+- Release files now carry GitHub artifact attestations, so anyone can verify they were built from this repository (`gh attestation verify main.js --repo varunlakshmaiah/obsidian-garage`).
+- Styles work the same on older Obsidian versions: scrollbars use the WebKit pseudo-elements, and the odometer's dotted underline is a border.
+
 ## 1.0.2 — 2026-11-02
 
 - Re-exporting a backup or CSV on the same day now updates the file with `Vault.process`, as Obsidian's guidelines recommend.

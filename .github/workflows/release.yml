@@ -9,6 +9,9 @@ on:
 
 permissions:
   contents: write
+  # Signed build provenance for the release files (GitHub artifact attestations)
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -24,6 +27,13 @@ jobs:
           npm ci
           npm run lint
           npm test
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
       - name: Check manifest version matches tag
         run: |
           test "$(jq -r .version manifest.json)" = "${GITHUB_REF_NAME}"

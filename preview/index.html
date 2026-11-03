@@ -72,6 +72,18 @@ select.dropdown { padding-right: 24px; }
 .suggestion-item { padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: .9em; }
 .suggestion-item:hover { background: var(--background-modifier-hover); }
 .suggestion-empty { padding: 6px 10px; color: var(--text-muted); }
+/* Phone width: the .is-phone rules from Obsidian 1.15's app.css that change the plugin's layout */
+.is-phone { font-size: 16px; }
+.is-phone input, .is-phone select, .is-phone button:not(.vm-icon-btn) { height: 44px; border: 0; background-color: var(--background-modifier-form-field, var(--background-secondary)); }
+.is-phone button { padding: 10px; }
+.is-phone input[type="text"] { width: 100%; }
+.is-phone .modal { width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; border: 0; padding: 18px 16px; }
+.is-phone .modal .setting-item { gap: 16px; }
+.is-phone .modal .setting-item:not(.mod-toggle, .setting-item-heading) { flex-direction: column; align-items: flex-start; }
+.is-phone .modal .setting-item:not(.mod-toggle, .setting-item-heading) .setting-item-control { width: 100%; }
+.is-phone .modal .setting-item-control select,
+.is-phone .modal .setting-item-control input,
+.is-phone .modal .setting-item-control button:not(.clickable-icon) { width: 100%; margin: 0; }
 </style>
 </head>
 <body>
@@ -108,6 +120,8 @@ select.dropdown { padding-right: 24px; }
     document.documentElement.style.setProperty('--interactive-accent', a ? `hsl(${a})` : '');
     document.documentElement.style.setProperty('--text-accent', a ? `hsl(${a})` : '');
     $('pv-leaf').style.maxWidth = pref.width || '100%';
+    document.body.classList.toggle('is-mobile', pref.width === '390px');
+    document.body.classList.toggle('is-phone', pref.width === '390px');
   };
   $('pv-theme').value = pref.theme || 'dark';
   $('pv-accent').value = pref.accent || '';

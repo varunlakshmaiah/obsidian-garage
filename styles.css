@@ -988,6 +988,11 @@
   border-bottom: 1px dashed var(--vm-rule);
 }
 
+/* The heading's empty control would take the row's width and squeeze the heading on phones */
+.vm-modal-section .setting-item-control:empty {
+  display: none;
+}
+
 .vm-modal-section .setting-item-name {
   font-size: 0.72em;
   font-weight: 700;
@@ -1115,8 +1120,10 @@
   .vm-tabs { order: 3; width: 100%; gap: 0; }
   .vm-tab { flex: 1; padding: 6px 4px; letter-spacing: 0.06em; }
   .vm-tools { margin-left: 0; }
-  .vm-summary { gap: 14px; }
-  .vm-lead-fig { font-size: 2.3em; }
+  .vm-summary { gap: 12px; padding: 14px 0 12px; }
+  .vm-lead-fig { font-size: 2em; }
+  .vm-section-head { margin: 18px 0 8px; }
+  .vm-vehicle-head { padding-top: 14px; }
   .vm-strip { width: 100%; margin-left: 0; grid-auto-columns: minmax(0, 1fr); }
   .vm-strip-wide { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .vm-strip-wide .vm-field:nth-child(3) { border-left: 0; }
@@ -1130,17 +1137,17 @@
   .vm-seg { margin-left: 0; width: 100%; }
   .vm-seg button { flex: 1; }
   .vm-actions .vm-btn { flex: 1; justify-content: center; }
-  /* One-handed: 44px touch targets */
+  /* One-handed: 40px touch targets, Obsidian's own small touch size; phones already enlarge the text */
   .vm-tab,
   .vm-pill,
   .vm-seg button,
   .vm-actions .vm-btn,
   .vm-card-actions .vm-btn,
   .vm-icon-btn,
-  .vm-chip { min-height: 44px; }
-  .vm-icon-btn { min-width: 44px; }
+  .vm-chip { min-height: 40px; }
+  .vm-icon-btn { min-width: 40px; }
   .vm-pill,
-  .vm-chip { padding: 0 14px; }
+  .vm-chip { padding: 0 12px; }
 }
 
 @container vm (max-width: 420px) {
@@ -1151,18 +1158,29 @@
 
 /* The modal is not inside the container, so it follows the window */
 @media (max-width: 640px) {
-  .vm-row,
-  .vm-row-doc { position: relative; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .vm-row .is-name { grid-column: 1 / -1; padding-right: 48px; }
-  .vm-row .vm-icon-btn { position: absolute; top: 8px; right: 8px; min-width: 44px; min-height: 44px; }
+  /* Schedule row in two lines: item, last date and remove on top, the three numbers below */
+  .vm-row:not(.vm-row-doc) { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(8.5em, 1.6fr) auto; }
+  .vm-row .is-name { grid-column: 1 / 3; grid-row: 1; }
+  .vm-row .is-date { grid-column: 3; grid-row: 1; }
+  .vm-row .vm-icon-btn { grid-row: 1; min-width: 40px; min-height: 40px; }
   .vm-chip,
-  .vm-check { min-height: 44px; }
+  .vm-check { min-height: 40px; }
   /* Rows with two controls (cost + workshop, make + model) wrap under their label */
   .vm-modal .setting-item:not(.setting-item-heading):not(.vm-modal-actions) { flex-wrap: wrap; }
   .vm-modal .setting-item-control { flex: 1 1 100%; flex-wrap: wrap; min-width: 0; }
   .vm-modal .setting-item-control > input,
   .vm-modal .setting-item-control > select { flex: 1 1 8em; min-width: 0; }
 }
+
+/* Phones: Obsidian already stacks each setting and makes every control 44px and full width.
+   Keep paired controls (make + model, cost + workshop) side by side and the settings close together. */
+.is-phone .vm-modal .setting-item:not(.setting-item-heading) { gap: 6px; }
+.is-phone .vm-modal .setting-item-control,
+.is-phone .vm-settings .setting-item-control { flex-wrap: nowrap; gap: 8px; }
+.is-phone .vm-modal .setting-item-control > input,
+.is-phone .vm-modal .setting-item-control > select,
+.is-phone .vm-settings .setting-item-control > input,
+.is-phone .vm-settings .setting-item-control > select { width: auto; flex: 1 1 0; min-width: 0; }
 
 @container vm (max-width: 420px) {
   .vm-settings .setting-item { flex-wrap: wrap; }

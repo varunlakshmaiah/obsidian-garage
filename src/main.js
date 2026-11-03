@@ -757,7 +757,7 @@ class VehicleModal extends Modal {
       input(`Every ${unit}`, 'number', iv.distance, (x) => (iv.distance = num(x)));
       input('Every months', 'number', iv.months, (x) => (iv.months = num(x)));
       input(`Last done ${unit}`, 'number', iv.lastDistance, (x) => (iv.lastDistance = num(x)));
-      input('Last done date', 'date', iv.lastDate, (x) => (iv.lastDate = dateOf(x)));
+      input('Last done date', 'date', iv.lastDate, (x) => (iv.lastDate = dateOf(x)), 'is-date');
       const del = row.createEl('button', { cls: 'vm-icon-btn', attr: { 'aria-label': `Remove ${iv.name || 'item'}` } });
       setIcon(del, 'x');
       del.addEventListener('click', () => {

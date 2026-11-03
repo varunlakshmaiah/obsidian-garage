@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.4 — 2026-11-03
+
+- Tighter layout on phones: forms keep paired fields (make and model, cost and workshop, units) side by side with less space between settings, and buttons, tabs and vehicle pills are 40px tall instead of 44px.
+- Each maintenance schedule item in the vehicle form takes two lines on a phone instead of four.
+- Section headings in forms no longer break onto one word per line on narrow screens.
+- Less empty space around the summary and section headings in narrow panes.
+
 ## 1.0.3 — 2026-11-02
 
 - Release files now carry GitHub artifact attestations, so anyone can verify they were built from this repository (`gh attestation verify main.js --repo varunlakshmaiah/obsidian-garage`).

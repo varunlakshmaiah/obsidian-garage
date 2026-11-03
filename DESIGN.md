@@ -7,7 +7,7 @@ Follows the rules of [Renewals' DESIGN.md](https://github.com/varunlakshmaiah/ob
 - **Borrowed ink:** every colour is an Obsidian theme variable. Status hues are `color-mix(in srgb, var(--color-red|orange|green) 55%, var(--text-normal))` so they stay readable in light and dark themes.
 - **Flat:** hairline borders (`--background-modifier-border`) and one tone step (`--background-secondary`) for cards. No shadows, hover is `--background-modifier-hover`.
 - **Type:** the host font, sizes in em, tabular numbers everywhere. Uppercase tracked text only for card heads, tab caps, field tabs and stamps.
-- **Layout:** container queries on the pane (`container: vm / inline-size`) at 960, 640 and 420px, never window media queries (the modal is the one exception, since it is not inside the pane). At 640px and below tabs take a full row and every control is at least 44px tall.
+- **Layout:** container queries on the pane (`container: vm / inline-size`) at 960, 640 and 420px, never window media queries (the modal is the one exception, since it is not inside the pane). At 640px and below tabs take a full row and every control is at least 40px tall (Obsidian's small touch size; phones already enlarge the text). On phones (`.is-phone`) Obsidian stacks modal settings and makes inputs 44px and full width, so the plugin only keeps paired controls side by side and tightens the gaps.
 - **Focus:** a 2px `--interactive-accent` outline at a 2px offset on every button.
 
 Class prefix `vm-`. Everything is scoped to `.vm-root` and `.vm-modal`.

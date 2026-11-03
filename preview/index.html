@@ -74,9 +74,9 @@ select.dropdown { padding-right: 24px; }
 .suggestion-empty { padding: 6px 10px; color: var(--text-muted); }
 /* Phone width: the .is-phone rules from Obsidian 1.15's app.css that change the plugin's layout */
 .is-phone { font-size: 16px; }
-.is-phone input, .is-phone select, .is-phone button:not(.vm-icon-btn) { height: 44px; border: 0; background-color: var(--background-modifier-form-field, var(--background-secondary)); }
-.is-phone button { padding: 10px; }
-.is-phone input[type="text"] { width: 100%; }
+:where(.is-phone) input, :where(.is-phone) select, :where(.is-phone) button { height: 44px; border: 0; background-color: var(--background-modifier-form-field, var(--background-secondary)); }
+.is-phone .modal .setting-item-control button { padding: 10px; }
+.is-mobile input[type="text"] { width: 100%; }
 .is-phone .modal { width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; border: 0; padding: 18px 16px; }
 .is-phone .modal .setting-item { gap: 16px; }
 .is-phone .modal .setting-item:not(.mod-toggle, .setting-item-heading) { flex-direction: column; align-items: flex-start; }

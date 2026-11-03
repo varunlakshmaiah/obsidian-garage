@@ -1,6 +1,6 @@
 {
   "name": "obsidian-garage",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Track service schedules, fuel and charging, expenses, receipts and renewals for your cars, motorcycles and EVs.",
   "private": true,
   "type": "module",

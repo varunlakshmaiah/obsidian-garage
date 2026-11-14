@@ -293,6 +293,59 @@ test('importCSV adds rows to named vehicles and skips duplicates', async () => {
   assert.equal(vs[1].services[0].task, 'Chain');
 });
 
+test('importCSV keeps repeats inside one file, still skips a second import', async () => {
+  const { p, saved } = await plugin({ vehicles: [{ id: 'v', name: 'Car' }] });
+  const csv = 'vehicle,kind,date,odometer,item,amount,cost\nCar,expense,2026-01-01,,Tolls,,50\nCar,expense,2026-01-01,,Tolls,,50\n';
+  p.app.vault = { read: async () => csv };
+  await p.importCSV({ name: 'log.csv' });
+  await p.importCSV({ name: 'log.csv' });
+  assert.equal(saved().vehicles[0].expenses.length, 2, 'two tolls on the same day');
+});
+
+test('deleteEntry rolls "last done" back to the previous service', async () => {
+  const { p, saved } = await plugin({ vehicles: [{
+    id: 'v', name: 'Car',
+    intervals: [{ id: 'oil', name: 'Oil', distance: 10000, lastDistance: 20000, lastDate: '2026-06-01' }],
+    services: [
+      { id: 'old', date: '2025-06-01', odometer: 10000, task: 'Oil', resets: ['oil'] },
+      { id: 'new', date: '2026-06-01', odometer: 20000, task: 'Oil', resets: ['oil'] },
+    ],
+  }] });
+  await p.deleteEntry('v', 'services', 'new');
+  assert.deepEqual([saved().vehicles[0].intervals[0].lastDate, saved().vehicles[0].intervals[0].lastDistance], ['2025-06-01', 10000]);
+  await p.deleteEntry('v', 'services', 'old');
+  assert.equal(saved().vehicles[0].intervals[0].lastDate, '2025-06-01', 'no earlier service: kept, not wiped');
+});
+
+test('applyImport merge keeps other vehicles and replaces matching ones', async () => {
+  const { p, saved } = await plugin({ vehicles: [{ id: 'a', name: 'Car' }, { id: 'b', name: 'Bike' }] });
+  await p.applyImport([T.normalizeVehicle({ id: 'b', name: 'Bike 2' }), T.normalizeVehicle({ id: 'c', name: 'Van' })], 'merge');
+  assert.deepEqual(saved().vehicles.map((v) => v.name), ['Car', 'Bike 2', 'Van']);
+  await p.applyImport([T.normalizeVehicle({ id: 'c', name: 'Van' })], 'replace');
+  assert.deepEqual(saved().vehicles.map((v) => v.name), ['Van']);
+});
+
+test('setOdometer after a Sync reload keeps entries the old copy did not have', async () => {
+  const { p, saved } = await plugin({ vehicles: [{ id: 'v', name: 'Car' }] });
+  const stale = p.data.vehicles[0];
+  p.loadData = async () => ({ vehicles: [{ id: 'v', name: 'Car', fills: [{ id: 'f', amount: 10, odometer: 500 }] }] });
+  await p.onExternalSettingsChange();
+  assert.equal(p.setOdometer(stale, 400), false, 'checked against the synced log');
+  assert.equal(p.setOdometer(stale, 600), true);
+  await new Promise((r) => setImmediate(r));
+  assert.equal(saved().vehicles[0].fills.length, 1);
+  assert.equal(saved().vehicles[0].odometer, 600);
+});
+
+test('daily reminder is remembered per device, without writing data.json', async () => {
+  const { p, saved } = await plugin({ vehicles: [] });
+  const store = {};
+  Object.assign(p.app, { loadLocalStorage: (k) => store[k] ?? null, saveLocalStorage: (k, v) => (store[k] = v) });
+  await p.remind();
+  assert.equal(Object.values(store).length, 1);
+  assert.equal(saved(), null, 'data.json untouched');
+});
+
 test('settings search definitions read and write the plugin data', async () => {
   const { p, saved } = await plugin({ vehicles: [] });
   const tab = new T.VehicleSettingTab(p.app, p);

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.5 — 2026-11-14
+
+- CSV import keeps repeated rows within one file, such as two tolls of the same amount on the same day. Importing the same file twice still adds nothing the second time.
+- Entries that Obsidian Sync brings in while a form is open (edit vehicle, update odometer, renew) are no longer overwritten when you save.
+- The daily reminder is remembered per device on Obsidian 1.8.7 and later, so opening a vault no longer writes the data file before Sync has caught up. Each device now shows its own reminder once a day.
+- Deleting a service moves "last done" back to the previous service of that item, so a service logged by mistake no longer hides what is due.
+- Screen readers announce the paired fields in forms (make, model, year, plate, units, due soon), the status dot on vehicle pills, and the receipt clip in the log.
+
 ## 1.0.4 — 2026-11-03
 
 - Tighter layout on phones: forms keep paired fields (make and model, cost and workshop, units) side by side with less space between settings, and buttons, tabs and vehicle pills are 40px tall instead of 44px.

@@ -179,14 +179,14 @@
   color: var(--text-normal);
 }
 
-.vm-tab[aria-selected="true"] {
+.vm-tab[aria-current="page"] {
   position: relative;
   border-color: var(--vm-rule);
   background: var(--background-primary);
   color: var(--text-normal);
 }
 
-.vm-tab[aria-selected="true"]::after {
+.vm-tab[aria-current="page"]::after {
   content: "";
   position: absolute;
   left: 0;

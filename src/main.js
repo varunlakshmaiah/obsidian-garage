@@ -71,6 +71,7 @@ const UNDO_MS = 8000;
 const LOG_PAGE = 100; // log rows drawn at a time, so years of entries stay quick on phones
 const RECEIPT_TYPES = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'heic', 'bmp', 'svg', 'pdf']);
 const LONG_PRESS_MS = 500;
+const REMIND_KEY = 'garage-last-reminder';
 
 // ============================================================
 // Helpers: dates, numbers, money
@@ -645,6 +646,11 @@ function numberInput(t, value, placeholder) {
   return t;
 }
 
+function labelled(t, label) {
+  t.inputEl.setAttr('aria-label', label);
+  return t;
+}
+
 function dateInput(t, value) {
   t.inputEl.type = 'date';
   t.setValue(value || '');
@@ -700,6 +706,7 @@ class VehicleModal extends Modal {
       .setName('Type')
       .addDropdown((dd) => {
         Object.entries(TYPES).forEach(([k, t]) => dd.addOption(k, t.label));
+        dd.selectEl.setAttr('aria-label', 'Vehicle type');
         dd.setValue(v.type).onChange((x) => {
           v.type = x;
           represet();
@@ -707,22 +714,24 @@ class VehicleModal extends Modal {
       })
       .addDropdown((dd) => {
         Object.entries(FUELS).forEach(([k, t]) => dd.addOption(k, t));
+        dd.selectEl.setAttr('aria-label', 'Fuel');
         dd.setValue(v.fuel).onChange((x) => {
           v.fuel = x;
           represet();
         });
       });
+    // Paired boxes share one setting name, so each gets its own label for screen readers
     new Setting(contentEl)
       .setName('Make and model')
-      .addText((t) => t.setPlaceholder('Maruti').setValue(v.make).onChange((x) => (v.make = x)))
-      .addText((t) => t.setPlaceholder('Swift').setValue(v.model).onChange((x) => (v.model = x)));
+      .addText((t) => labelled(t, 'Make').setPlaceholder('Maruti').setValue(v.make).onChange((x) => (v.make = x)))
+      .addText((t) => labelled(t, 'Model').setPlaceholder('Swift').setValue(v.model).onChange((x) => (v.model = x)));
     new Setting(contentEl)
       .setName('Year and plate')
       .addText((t) => {
         t.inputEl.inputMode = 'numeric';
-        t.setPlaceholder(String(new Date().getFullYear())).setValue(v.year).onChange((x) => (v.year = x));
+        labelled(t, 'Year').setPlaceholder(String(new Date().getFullYear())).setValue(v.year).onChange((x) => (v.year = x));
       })
-      .addText((t) => t.setPlaceholder('Number plate').setValue(v.plate).onChange((x) => (v.plate = x)));
+      .addText((t) => labelled(t, 'Number plate').setPlaceholder('Number plate').setValue(v.plate).onChange((x) => (v.plate = x)));
     new Setting(contentEl).setName('Chassis number').addText((t) => t.setValue(v.vin).onChange((x) => (v.vin = x)));
     new Setting(contentEl)
       .setName(`Odometer (${unit})`)
@@ -733,31 +742,30 @@ class VehicleModal extends Modal {
       cls: 'vm-hint',
       text: `Each item is due after its distance or its months, whichever comes first. Leave a box empty to track by one only.${this.isEdit ? '' : ' Last done defaults to today at the current odometer.'}`,
     });
+    // One labelled input in a schedule or document row
+    const input = (row, label, type, value, set, cls = '') => {
+      const wrap = row.createEl('label', { cls: 'vm-row-field ' + cls });
+      wrap.createSpan({ cls: 'vm-field-tab', text: label });
+      const el = wrap.createEl('input', { type });
+      if (type === 'number') {
+        el.inputMode = 'decimal';
+        el.min = '0';
+        el.step = 'any';
+      }
+      el.value = value ? String(value) : '';
+      el.addEventListener('input', () => set(el.value));
+      return el;
+    };
     const ivList = contentEl.createDiv({ cls: 'vm-rows' });
     v.intervals.forEach((iv, idx) => {
       const row = ivList.createDiv({ cls: 'vm-row' });
       const touch = () => (this.touchedIntervals = true);
-      const input = (label, type, value, set, cls = '') => {
-        const wrap = row.createEl('label', { cls: 'vm-row-field ' + cls });
-        wrap.createSpan({ cls: 'vm-field-tab', text: label });
-        const el = wrap.createEl('input', { type });
-        if (type === 'number') {
-          el.inputMode = 'decimal';
-          el.min = '0';
-          el.step = 'any';
-        }
-        el.value = value ? String(value) : '';
-        el.addEventListener('input', () => {
-          touch();
-          set(el.value);
-        });
-        return el;
-      };
-      input('Item', 'text', iv.name, (x) => (iv.name = x), 'is-name');
-      input(`Every ${unit}`, 'number', iv.distance, (x) => (iv.distance = num(x)));
-      input('Every months', 'number', iv.months, (x) => (iv.months = num(x)));
-      input(`Last done ${unit}`, 'number', iv.lastDistance, (x) => (iv.lastDistance = num(x)));
-      input('Last done date', 'date', iv.lastDate, (x) => (iv.lastDate = dateOf(x)), 'is-date');
+      row.addEventListener('input', touch);
+      input(row, 'Item', 'text', iv.name, (x) => (iv.name = x), 'is-name');
+      input(row, `Every ${unit}`, 'number', iv.distance, (x) => (iv.distance = num(x)));
+      input(row, 'Every months', 'number', iv.months, (x) => (iv.months = num(x)));
+      input(row, `Last done ${unit}`, 'number', iv.lastDistance, (x) => (iv.lastDistance = num(x)));
+      input(row, 'Last done date', 'date', iv.lastDate, (x) => (iv.lastDate = dateOf(x)), 'is-date');
       const del = row.createEl('button', { cls: 'vm-icon-btn', attr: { 'aria-label': `Remove ${iv.name || 'item'}` } });
       setIcon(del, 'x');
       del.addEventListener('click', () => {
@@ -786,16 +794,8 @@ class VehicleModal extends Modal {
     const docList = contentEl.createDiv({ cls: 'vm-rows' });
     v.documents.forEach((d, idx) => {
       const row = docList.createDiv({ cls: 'vm-row vm-row-doc' });
-      const nameWrap = row.createEl('label', { cls: 'vm-row-field is-name' });
-      nameWrap.createSpan({ cls: 'vm-field-tab', text: 'Document' });
-      const nameEl = nameWrap.createEl('input', { type: 'text' });
-      nameEl.value = d.name;
-      nameEl.addEventListener('input', () => (d.name = nameEl.value));
-      const dueWrap = row.createEl('label', { cls: 'vm-row-field' });
-      dueWrap.createSpan({ cls: 'vm-field-tab', text: 'Due' });
-      const dueEl = dueWrap.createEl('input', { type: 'date' });
-      dueEl.value = d.due;
-      dueEl.addEventListener('input', () => (d.due = dateOf(dueEl.value)));
+      input(row, 'Document', 'text', d.name, (x) => (d.name = x), 'is-name');
+      input(row, 'Due', 'date', d.due, (x) => (d.due = dateOf(x)));
       const del = row.createEl('button', { cls: 'vm-icon-btn', attr: { 'aria-label': `Remove ${d.name || 'document'}` } });
       setIcon(del, 'x');
       del.addEventListener('click', () => {
@@ -832,6 +832,9 @@ class VehicleModal extends Modal {
           iv.lastDate = iv.lastDate || todayISO();
         });
       }
+      // This modal never edits the log, so keep entries Sync added while it was open
+      const live = this.isEdit && this.plugin.vehicle(v.id);
+      if (live) Object.keys(KIND_WORD).forEach((k) => (v[k] = live[k]));
       const clean = normalizeVehicle(v);
       this.close();
       this.plugin.commitVehicle(clean, this.isEdit ? `Saved ${clean.name}` : `Added ${clean.name}`);
@@ -890,8 +893,11 @@ class EntryModal extends Modal {
       });
       new Setting(contentEl)
         .setName(`Cost (${cur})`)
-        .addText((t) => numberInput(t, e.cost).onChange((x) => (e.cost = num(x))))
-        .addDropdown((dd) => dd.addOption('shop', 'Workshop').addOption('diy', 'DIY').setValue(e.where).onChange((x) => (e.where = x)));
+        .addText((t) => labelled(numberInput(t, e.cost), 'Cost').onChange((x) => (e.cost = num(x))))
+        .addDropdown((dd) => {
+          dd.selectEl.setAttr('aria-label', 'Done at');
+          dd.addOption('shop', 'Workshop').addOption('diy', 'DIY').setValue(e.where).onChange((x) => (e.where = x));
+        });
       if (v.intervals.length) {
         new Setting(contentEl).setName('Mark as done').setHeading().setClass('vm-modal-section');
         const list = contentEl.createDiv({ cls: 'vm-checks' });
@@ -1161,9 +1167,9 @@ class GarageView extends ItemView {
     icon(title, ICON_ID, 'vm-icon vm-mark');
     title.createSpan({ text: 'Garage' });
 
-    const tabs = bar.createDiv({ cls: 'vm-tabs', attr: { role: 'tablist' } });
+    const tabs = bar.createEl('nav', { cls: 'vm-tabs', attr: { 'aria-label': 'Garage sections' } });
     [['garage', 'Garage'], ['log', 'Log'], ['spend', 'Spend'], ['settings', 'Settings']].forEach(([id, label]) => {
-      const b = tabs.createEl('button', { cls: 'vm-tab', text: label, attr: { role: 'tab', 'aria-selected': String(this.tab === id) } });
+      const b = tabs.createEl('button', { cls: 'vm-tab', text: label, attr: this.tab === id ? { 'aria-current': 'page' } : {} });
       b.addEventListener('click', () => {
         this.tab = id;
         this.render();
@@ -1194,7 +1200,8 @@ class GarageView extends ItemView {
     const pills = parent.createDiv({ cls: 'vm-pills', attr: { role: 'group', 'aria-label': 'Vehicle' } });
     const pill = (id, label, status) => {
       const p = pills.createEl('button', { cls: 'vm-pill', attr: { 'aria-pressed': String(this.vehicleId === id) } });
-      if (status && status !== 'ok') p.createSpan({ cls: 'vm-dot is-' + status, attr: { 'aria-label': STAMP[status] } });
+      // role img: screen readers ignore a label on a plain span
+      if (status && status !== 'ok') p.createSpan({ cls: 'vm-dot is-' + status, attr: { role: 'img', 'aria-label': STAMP[status] } });
       p.createSpan({ text: label });
       p.addEventListener('click', () => {
         this.vehicleId = id;
@@ -1351,40 +1358,36 @@ class GarageView extends ItemView {
 
     const sec = this.sectionHead(parent, 'Maintenance schedule', ivs.length ? '' : 'none yet');
     if (!ivs.length) this.emptyLine(sec, 'No maintenance items.', 'Add some', () => this.plugin.openVehicleModal(v));
-    const list = sec.createDiv({ cls: 'vm-list' });
-    ivs.forEach(({ item, st }) => {
+    // One schedule or document line: name, when, detail, and its action button
+    const listRow = (list, st, name, when, detail, showBar, ic, label, fn) => {
       const row = list.createDiv({ cls: 'vm-list-row is-' + st.status });
       const main = row.createDiv({ cls: 'vm-list-main' });
       const top = main.createDiv({ cls: 'vm-list-top' });
-      top.createSpan({ cls: 'vm-name', text: item.name });
-      top.createSpan({ cls: 'vm-list-when', text: dueLabel(st, unit) });
-      bar(main, st.pct, st.status);
-      main.createDiv({
-        cls: 'vm-muted',
-        text: `${everyLabel(item, unit)} · last ${item.lastDate ? shortDate(item.lastDate) : 'never'}${item.distance ? ` at ${fmtNum(item.lastDistance)} ${unit}` : ''}`,
-      });
-      const done = row.createEl('button', { cls: 'vm-icon-btn', attr: { 'aria-label': `Mark ${item.name} done` } });
-      setIcon(done, 'check');
-      done.addEventListener('click', () => this.plugin.openEntryModal(v, 'services', null, item.id));
-    });
+      top.createSpan({ cls: 'vm-name', text: name });
+      top.createSpan({ cls: 'vm-list-when', text: when });
+      if (showBar) bar(main, st.pct, st.status);
+      main.createDiv({ cls: 'vm-muted', text: detail });
+      const b = row.createEl('button', { cls: 'vm-icon-btn', attr: { 'aria-label': label } });
+      setIcon(b, ic);
+      b.addEventListener('click', fn);
+    };
+
+    const list = sec.createDiv({ cls: 'vm-list' });
+    ivs.forEach(({ item, st }) => listRow(
+      list, st, item.name, dueLabel(st, unit),
+      `${everyLabel(item, unit)} · last ${item.lastDate ? shortDate(item.lastDate) : 'never'}${item.distance ? ` at ${fmtNum(item.lastDistance)} ${unit}` : ''}`,
+      true, 'check', `Mark ${item.name} done`, () => this.plugin.openEntryModal(v, 'services', null, item.id),
+    ));
 
     const dsec = this.sectionHead(parent, 'Documents and renewals', docs.length ? '' : 'none yet');
     if (!docs.length) this.emptyLine(dsec, 'Track insurance, PUC and registration dates.', 'Add documents', () => this.plugin.openVehicleModal(v));
     const dlist = dsec.createDiv({ cls: 'vm-list' });
-    docs.forEach(({ item, st }) => {
-      const row = dlist.createDiv({ cls: 'vm-list-row is-' + st.status });
-      const main = row.createDiv({ cls: 'vm-list-main' });
-      const top = main.createDiv({ cls: 'vm-list-top' });
-      top.createSpan({ cls: 'vm-name', text: item.name });
-      top.createSpan({
-        cls: 'vm-list-when',
-        text: !item.due ? 'No date set' : st.daysLeft < 0 ? `Expired ${-st.daysLeft}d ago` : st.daysLeft === 0 ? 'Expires today' : `Expires ${whenDays(st.daysLeft)}`,
-      });
-      main.createDiv({ cls: 'vm-muted', text: item.due ? shortDate(item.due) : 'Add the expiry date to get reminders' });
-      const renew = row.createEl('button', { cls: 'vm-icon-btn', attr: { 'aria-label': `Renew ${item.name}` } });
-      setIcon(renew, 'refresh-cw');
-      renew.addEventListener('click', () => this.plugin.openRenew(v, item));
-    });
+    docs.forEach(({ item, st }) => listRow(
+      dlist, st, item.name,
+      !item.due ? 'No date set' : st.daysLeft < 0 ? `Expired ${-st.daysLeft}d ago` : st.daysLeft === 0 ? 'Expires today' : `Expires ${whenDays(st.daysLeft)}`,
+      item.due ? shortDate(item.due) : 'Add the expiry date to get reminders',
+      false, 'refresh-cw', `Renew ${item.name}`, () => this.plugin.openRenew(v, item),
+    ));
 
     if (v.notes) {
       const nsec = this.sectionHead(parent, 'Notes');
@@ -1454,7 +1457,11 @@ class GarageView extends ItemView {
         text: service ? entry.task : expense ? EXPENSES[entry.category]
           : `${fmtNum(entry.amount, 2)} ${unit}${!isEV(vehicle) && !entry.full ? ' · partial' : ''}${entry.missed ? ' · after a missed one' : ''}`,
       });
-      if (entry.receipt) icon(nm, 'paperclip', 'vm-icon vm-inline-icon').setAttr('aria-label', 'Has a receipt');
+      if (entry.receipt) {
+        const clip = icon(nm, 'paperclip', 'vm-icon vm-inline-icon');
+        clip.setAttr('role', 'img');
+        clip.setAttr('aria-label', 'Has a receipt');
+      }
       const bits = [shortDate(entry.date)];
       if (entry.odometer) bits.push(`${fmtNum(entry.odometer)} ${data.distanceUnit}`);
       if (kind === 'fills' && entry.cost) bits.push(`${fmtMoney(entry.cost / entry.amount, data.currency, 2)}/${unit}`);
@@ -1681,11 +1688,17 @@ function renderPreferences(el, plugin) {
   new Setting(el)
     .setName('Units')
     .setDesc('Distance and fuel volume for every vehicle. Changing them relabels numbers, it does not convert them.')
-    .addDropdown((dd) => dd.addOption('km', 'Kilometres').addOption('mi', 'Miles').setValue(data.distanceUnit).onChange((v) => plugin.update({ distanceUnit: v })))
-    .addDropdown((dd) => dd.addOption('L', 'Litres').addOption('gal', 'Gallons').setValue(data.volumeUnit).onChange((v) => plugin.update({ volumeUnit: v })));
+    .addDropdown((dd) => {
+      dd.selectEl.setAttr('aria-label', 'Distance unit');
+      dd.addOption('km', 'Kilometres').addOption('mi', 'Miles').setValue(data.distanceUnit).onChange((v) => plugin.update({ distanceUnit: v }));
+    })
+    .addDropdown((dd) => {
+      dd.selectEl.setAttr('aria-label', 'Volume unit');
+      dd.addOption('L', 'Litres').addOption('gal', 'Gallons').setValue(data.volumeUnit).onChange((v) => plugin.update({ volumeUnit: v }));
+    });
 
-  const positive = (t, key) => {
-    numberInput(t, data[key]);
+  const positive = (t, key, label) => {
+    labelled(numberInput(t, data[key]), label);
     // Commit on change, not every keystroke, so the view doesn't redraw mid-typing
     t.inputEl.addEventListener('change', () => {
       const n = num(t.getValue());
@@ -1695,8 +1708,8 @@ function renderPreferences(el, plugin) {
   new Setting(el)
     .setName('Due soon')
     .setDesc(`Flag an item when it is this close: distance (${data.distanceUnit}) and days. Short intervals warn within a quarter of the interval instead.`)
-    .addText((t) => positive(t, 'soonDistance'))
-    .addText((t) => positive(t, 'soonDays'));
+    .addText((t) => positive(t, 'soonDistance', `Due soon distance (${data.distanceUnit})`))
+    .addText((t) => positive(t, 'soonDays', 'Due soon days'));
 
   new Setting(el)
     .setName('Reminders')
@@ -1893,13 +1906,28 @@ class GaragePlugin extends Plugin {
     const v = this.vehicle(vehicleId);
     if (!v) return;
     const before = clone(v);
+    const gone = v[kind].find((x) => x.id === entryId);
     v[kind] = v[kind].filter((x) => x.id !== entryId);
+    if (gone && kind === 'services') {
+      v.intervals.forEach((iv) => {
+        if (!gone.resets.includes(iv.id) || iv.lastDate !== gone.date || iv.lastDistance !== gone.odometer) return;
+        // Go back to the newest remaining service that did this item; with none, the earlier value is not known
+        const prev = v.services.filter((s) => s.resets.includes(iv.id)).sort((a, b) => b.date.localeCompare(a.date) || b.odometer - a.odometer)[0];
+        if (prev) {
+          iv.lastDate = prev.date;
+          iv.lastDistance = prev.odometer;
+        }
+      });
+    }
     await this.commitVehicle(v);
     this.notifyUndo('Deleted entry', () => this.commitVehicle(before));
   }
 
   /** Returns false (and says why) when the reading is invalid; saves in the background otherwise */
-  setOdometer(v, value) {
+  setOdometer(stale, value) {
+    // Sync may have replaced the data while the prompt was open: change the vehicle as it is now
+    const v = this.vehicle(stale.id);
+    if (!v) return true;
     const logged = loggedOdometer(v);
     if (!(value > 0)) {
       new Notice('Enter the reading.');
@@ -1957,9 +1985,11 @@ class GaragePlugin extends Plugin {
           new Notice('Enter a date.');
           return false;
         }
-        const d = v.documents.find((y) => y.id === doc.id);
-        if (d) d.due = dateOf(x);
-        this.commitVehicle(v, `${doc.name} renewed until ${shortDate(dateOf(x))}`);
+        const cur = this.vehicle(v.id);
+        const d = cur && cur.documents.find((y) => y.id === doc.id);
+        if (!d) return;
+        d.due = dateOf(x);
+        this.commitVehicle(cur, `${doc.name} renewed until ${shortDate(d.due)}`);
       },
     }).open();
   }
@@ -1977,8 +2007,14 @@ class GaragePlugin extends Plugin {
   // ── Reminders ──
   async remind(force = false) {
     const today = todayISO();
-    if (!force && (!this.data.reminders || this.data.lastReminder === today)) return;
-    if (!force) await this.update({ lastReminder: today }, false);
+    // Per device (Obsidian 1.8.7+), so opening the vault never writes data.json before Sync has brought it up to date
+    const local = typeof this.app.loadLocalStorage === 'function';
+    const last = local ? this.app.loadLocalStorage(REMIND_KEY) : this.data.lastReminder;
+    if (!force && (!this.data.reminders || last === today)) return;
+    if (!force) {
+      if (local) this.app.saveLocalStorage(REMIND_KEY, today);
+      else await this.update({ lastReminder: today }, false);
+    }
     const due = needsAttention(this.data.vehicles, today, this.data);
     if (!due.length) {
       if (force) new Notice('Nothing needs attention. Everything is up to date.');
@@ -2088,6 +2124,9 @@ class GaragePlugin extends Plugin {
       const before = clone(this.data.vehicles);
       const vehicles = clone(this.data.vehicles);
       const byName = new Map(vehicles.map((v) => [v.name.toLowerCase(), v]));
+      // Importing the same file twice adds nothing the second time; repeats inside one file (two tolls in a day) are kept
+      const sig = (v, kind, e) => [v.id, kind, e.date, e.odometer, e.cost].join('|');
+      const existing = new Set(vehicles.flatMap((v) => Object.keys(KIND_WORD).flatMap((k) => v[k].map((e) => sig(v, k, e)))));
       let added = 0;
       rows.forEach(({ vehicle, kind, entry }) => {
         const key = (vehicle || fallback.name).toLowerCase();
@@ -2097,8 +2136,7 @@ class GaragePlugin extends Plugin {
           vehicles.push(v);
           byName.set(key, v);
         }
-        // Importing the same file twice adds nothing the second time
-        if (v[kind].some((x) => x.date === entry.date && x.odometer === entry.odometer && x.cost === entry.cost)) return;
+        if (existing.has(sig(v, kind, entry))) return;
         v[kind].push(entry);
         added++;
       });
